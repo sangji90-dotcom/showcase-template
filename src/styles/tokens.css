@@ -1,0 +1,122 @@
+/**
+ * ============================================================
+ *  고객사별 교체 지점 #2 — 디자인 토큰
+ * ============================================================
+ *  색·폰트·간격·radius를 전부 여기서 정의합니다.
+ *  컴포넌트 CSS는 var(--...) 만 참조하므로,
+ *  이 파일의 값만 바꾸면 사이트 전체 톤이 바뀝니다.
+ *
+ *  FE/디자이너 작업 순서:
+ *   1) --brand-* 계열을 고객사 CI 색으로 교체
+ *   2) --font-sans 를 고객사 서체로 교체 (웹폰트는 global.css에서 @import)
+ *   3) 필요하면 --radius-*, --space-* 스케일 조정
+ * ============================================================
+ */
+
+:root {
+  /* ---------- Brand ---------- */
+  --brand-50: #eef4ff;
+  --brand-100: #d9e5ff;
+  --brand-500: #2f5fe0;
+  --brand-600: #2450c4;
+  --brand-700: #1d3f9c;
+  --brand-contrast: #ffffff;
+
+  /* ---------- Neutral ---------- */
+  --gray-0: #ffffff;
+  --gray-50: #f8f9fb;
+  --gray-100: #f1f3f6;
+  --gray-200: #e4e7ec;
+  --gray-300: #cfd4dc;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+
+  /* ---------- Semantic (컴포넌트는 이 계층만 참조) ---------- */
+  --color-bg: var(--gray-0);
+  --color-bg-subtle: var(--gray-50);
+  --color-bg-muted: var(--gray-100);
+  --color-text: var(--gray-900);
+  --color-text-muted: var(--gray-500);
+  --color-border: var(--gray-200);
+  --color-accent: var(--brand-500);
+  --color-accent-hover: var(--brand-600);
+  --color-accent-text: var(--brand-contrast);
+  --color-accent-subtle: var(--brand-50);
+
+  /* ---------- Typography ---------- */
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, 'Segoe UI', 'Apple SD Gothic Neo',
+    'Noto Sans KR', sans-serif;
+  --font-heading: var(--font-sans);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+
+  /* ---------- Spacing ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* ---------- Shape ---------- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
+
+  /* ---------- Layout ---------- */
+  --container-max: 1180px;
+  --container-pad: var(--space-6);
+
+  /* ---------- Motion ---------- */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 180ms;
+}
+
+/**
+ * 다크 모드가 필요 없는 고객사는 이 블록을 통째로 삭제하면 됩니다.
+ * semantic 토큰만 재정의하므로 컴포넌트는 수정할 필요가 없습니다.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0e1116;
+    --color-bg-subtle: #151a21;
+    --color-bg-muted: #1c222b;
+    --color-text: #e8eaed;
+    --color-text-muted: #9aa4b2;
+    --color-border: #2a313c;
+    --color-accent: #6b93ff;
+    --color-accent-hover: #86a6ff;
+    --color-accent-text: #0e1116;
+    --color-accent-subtle: #17203a;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --text-3xl: 1.75rem;
+    --text-4xl: 2.125rem;
+    --container-pad: var(--space-4);
+  }
+}

@@ -1,0 +1,252 @@
+/**
+ * ============================================================
+ *  고객사별 교체 지점 #1 — 사이트 전역 설정
+ * ============================================================
+ *  새 고객사에 납품할 때 이 파일과 src/styles/tokens.css 두 개만
+ *  바꾸면 브랜드 교체가 끝나도록 설계되어 있습니다.
+ *  코드(컴포넌트/페이지)는 원칙적으로 건드리지 않습니다.
+ * ============================================================
+ */
+
+export interface NavItem {
+  label: string;
+  href: string;
+}
+
+export interface Category {
+  /** 상품 md의 category 필드에 쓰는 값 + URL 경로에 쓰이는 값 */
+  id: string;
+  /** 화면에 표시되는 이름 */
+  label: string;
+  /** 카테고리 페이지 상단 설명 (선택) */
+  description?: string;
+}
+
+/**
+ * 레이아웃 프리셋.
+ *
+ * tokens.css는 색·서체만 바꾸므로, 그것만으로는 고객사마다
+ * "구조가 똑같은 사이트"로 보입니다. 구조 자체를 바꾸는 축을
+ * 여기서 고릅니다. 컴포넌트를 새로 짜지 않고 조합으로 해결합니다.
+ *
+ * hero (3종) × productCard (3종) = 9가지 조합.
+ */
+export interface LayoutPreset {
+  /**
+   * 홈 히어로 구조.
+   *  stacked — 문구 위주, 그라데이션 배경. 제품 이미지가 약할 때 안전
+   *  split   — 좌측 문구 + 우측 대표 제품 이미지. 사진이 좋을 때
+   *  minimal — 큰 타이포만, 배경 없음. 기술·산업재 느낌
+   */
+  hero: 'stacked' | 'split' | 'minimal';
+
+  /**
+   * 상품 카드 구조.
+   *  card    — 테두리 + 4:3 이미지 + 아래 텍스트. 무난한 기본형
+   *  overlay — 이미지 위에 텍스트를 얹음. 사진이 강할 때
+   *  list    — 좌측 이미지 + 우측 텍스트 가로형. 사양 설명이 긴 제품
+   */
+  productCard: 'card' | 'overlay' | 'list';
+}
+
+export interface SiteConfig {
+  /** 배포 도메인. sitemap / canonical URL / OG URL 생성에 사용 */
+  site: string;
+  /** 회사명 (헤더 로고 텍스트, 푸터, SEO title 접미사) */
+  company: string;
+  /** 사이트 대표 문구 — 홈 히어로 제목 */
+  tagline: string;
+  /** SEO description 기본값 */
+  description: string;
+  /** 로고 이미지 경로. null이면 company 텍스트를 로고로 사용 */
+  logo: string | null;
+  /** OG 기본 이미지 (public/ 기준 절대경로) */
+  ogImage: string;
+  /** 기본 언어 (html lang) */
+  lang: string;
+
+  /** 레이아웃 프리셋 — 고객사마다 구조를 다르게 가져가는 축 */
+  layout: LayoutPreset;
+
+  nav: NavItem[];
+
+  /**
+   * 상품 카테고리 정의.
+   * 상품 md의 category 값은 반드시 여기 id 중 하나여야 하며,
+   * 아니면 빌드가 실패합니다 (오타로 깨진 페이지가 배포되는 것을 차단).
+   */
+  categories: Category[];
+
+  contact: {
+    email: string;
+    phone: string;
+    address: string;
+    /** 사업자등록번호 — 푸터 표기 (국내 사이트 관행) */
+    businessNumber: string;
+    /** 대표자명 */
+    ceo: string;
+  };
+
+  /**
+   * 문의 폼 설정.
+   * mode: 'external' — Google Forms 등 외부 폼 임베드 (권장: 개인정보가 서버를 거치지 않음)
+   * mode: 'endpoint' — 자체 엔드포인트로 POST (Cloudflare Worker 등)
+   * mode: 'none'     — 문의 페이지 없이 연락처만 노출
+   */
+  inquiry:
+    | {
+        mode: 'external';
+        embedUrl: string;
+        /**
+         * 제품 상세에서 "이 제품 문의하기"로 넘어올 때
+         * 폼의 어느 항목에 제품명을 미리 채울지 지정합니다.
+         *
+         * Google Forms에서 얻는 방법:
+         *   폼 편집 → 우측 점 3개 → "미리 채워진 링크 가져오기" →
+         *   제품명 칸에 아무 값이나 입력 → 링크 복사 →
+         *   링크 안의 entry.숫자 부분이 이 값입니다. (예: entry.1234567890)
+         *
+         * 비워두면 제품명은 화면에 안내 문구로만 표시됩니다.
+         */
+        prefillEntry?: string;
+      }
+    | { mode: 'endpoint'; endpoint: string; turnstileSiteKey?: string }
+    | { mode: 'none' };
+
+  /**
+   * 상품 목록에서 처음에 보여줄 개수.
+   * 나머지는 "더 보기"로 점진 노출됩니다 (이미지는 lazy 로딩).
+   * 페이지를 쪼개지 않아 카테고리 필터·검색이 즉시 반응합니다.
+   */
+  productsPerPage: number;
+
+  /** 홈 화면에 노출할 대표 상품 개수 */
+  featuredCount: number;
+
+  /** 상품 목록에 클라이언트 검색창 노출 여부 (상품 50개 이상이면 권장) */
+  enableSearch: boolean;
+
+  /**
+   * 검색엔진 사이트 소유확인.
+   *
+   * 사이트를 올려도 네이버·구글은 그 사이트가 생긴 걸 모릅니다.
+   * 각 도구에 사이트를 등록하고 "내가 주인"임을 증명해야 검색에 노출됩니다.
+   * 사이트맵은 빌드 시 자동 생성되므로 주소만 제출하면 됩니다.
+   *
+   *  네이버: 서치어드바이저 → 사이트 등록 → HTML 태그 방식 선택 → content 값
+   *  구글:   서치콘솔 → 속성 추가 → HTML 태그 방식 → content 값
+   *
+   * 값이 비어 있으면 메타태그를 출력하지 않습니다.
+   * ⚠ 등록 작업은 반드시 고객사 계정으로 하세요. 우리 계정으로 하면
+   *   나중에 고객사가 검색 현황을 직접 확인할 수 없습니다.
+   */
+  verification: {
+    naver?: string;
+    google?: string;
+  };
+
+  /**
+   * 방문자 통계.
+   *
+   * Cloudflare Web Analytics를 권장합니다 — 무료이고 **쿠키를 쓰지 않아서**
+   * 동의 배너나 개인정보처리방침 추가 문구가 필요 없습니다.
+   * (GA4는 쿠키를 쓰므로 동의 절차와 방침 수정이 따라옵니다.)
+   *
+   * Cloudflare 대시보드 → Analytics & Logs → Web Analytics →
+   * 사이트 추가 후 발급되는 토큰을 넣으세요.
+   *
+   * 비어 있으면 스크립트를 넣지 않습니다.
+   */
+  analytics: {
+    cloudflareToken?: string;
+  };
+
+  /**
+   * 데모 고지 배너.
+   *
+   * 영업용 데모 사이트를 공개할 때 켭니다.
+   * 가상의 회사임을 명시해 실존 업체로 오인되는 것을 막고,
+   * 보는 사람이 "이건 샘플"임을 바로 알 수 있게 합니다.
+   *
+   * **실제 고객사 납품 시에는 반드시 false 로 두세요.**
+   */
+  demoBanner: {
+    enabled: boolean;
+    /** 배너에 띄울 문구 */
+    text?: string;
+  };
+}
+
+export const siteConfig: SiteConfig = {
+  site: 'https://example.com',
+  company: '노벤타',
+  tagline: '현장이 멈추지 않도록',
+  description:
+    '노벤타는 생산 현장의 설비를 보호하고 상태를 기록하는 장비를 만듭니다. 용도에 맞는 제품을 찾아보고 문의해 주세요.',
+  logo: null,
+  ogImage: '/og-default.png',
+  lang: 'ko',
+
+  layout: {
+    hero: 'split',
+    productCard: 'card',
+  },
+
+  nav: [
+    { label: '제품', href: '/products' },
+    { label: '회사소개', href: '/about' },
+    { label: '문의', href: '/contact' },
+  ],
+
+  categories: [
+    {
+      id: 'protection',
+      label: '보호장비',
+      description: '분진·충격·진동으로부터 설비를 지키는 제품군입니다.',
+    },
+    {
+      id: 'measure',
+      label: '계측기기',
+      description: '현장의 온도·진동·압력을 기록하고 이상을 알립니다.',
+    },
+    {
+      id: 'parts',
+      label: '부속품',
+      description: '설치와 배선에 필요한 부속 자재입니다.',
+    },
+  ],
+
+  contact: {
+    email: 'contact@example.com',
+    phone: '02-0000-0000',
+    address: '경기도 화성시 동탄산단로 000',
+    businessNumber: '000-00-00000',
+    ceo: '홍길동',
+  },
+
+  inquiry: {
+    mode: 'external',
+    // Google Forms → 보내기 → <> 탭의 iframe src 주소를 그대로 붙여넣습니다.
+    embedUrl: 'https://docs.google.com/forms/d/e/FORM_ID/viewform?embedded=true',
+  },
+
+  productsPerPage: 12,
+  featuredCount: 4,
+  enableSearch: true,
+
+  verification: {
+    // naver: 'abc123...',
+    // google: 'xyz789...',
+  },
+
+  analytics: {
+    // cloudflareToken: '0123456789abcdef...',
+  },
+
+  // 영업용 데모 공개 시 true. 실제 납품 시에는 반드시 false.
+  demoBanner: {
+    enabled: true,
+  },
+};
+
+export default siteConfig;

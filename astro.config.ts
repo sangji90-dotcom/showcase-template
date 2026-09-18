@@ -30,9 +30,17 @@ export default defineConfig({
     domains: usesSanity ? ['cdn.sanity.io'] : [],
   },
   markdown: {
-    shikiConfig: {
-      theme: 'github-light',
-    },
+    /**
+     * 코드 하이라이팅을 끕니다.
+     *
+     * 기본값인 Shiki는 색을 style 속성으로 직접 박아 넣는데,
+     * 이 템플릿은 CSP를 인라인 없이(해시 기반) 운영하므로 충돌합니다.
+     * (빌드 때마다 경고가 뜨고, 켜 두면 코드블록 색이 실제로 막힙니다.)
+     *
+     * 제품 설명·회사소개에 코드블록이 들어갈 일은 없으므로 끄는 쪽이 맞습니다.
+     * 정말 필요하면 'prism' 으로 바꾸고 프리즘 CSS를 직접 넣으세요.
+     */
+    syntaxHighlight: false,
   },
   security: {
     /**

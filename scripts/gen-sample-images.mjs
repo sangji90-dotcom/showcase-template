@@ -121,3 +121,26 @@ const og = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
 await sharp(Buffer.from(og)).png().toFile(new URL('../public/og-default.png', import.meta.url).pathname);
 
 console.log(`제품 이미지 ${ITEMS.length}개와 OG 이미지를 생성했습니다.`);
+
+/**
+ * 예시 슬라이드 배너 1장.
+ * hero 프리셋을 'carousel' 로 바꿀 때 바로 확인해 볼 수 있도록 만들어 둡니다.
+ * (src/content/slides/example.md 는 draft: true 라 기본으로는 나오지 않습니다)
+ */
+const slidesOut = new URL('../src/assets/slides/', import.meta.url).pathname;
+mkdirSync(slidesOut, { recursive: true });
+
+const banner = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="760">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#1e3a8a"/><stop offset="100%" stop-color="#4f7bd6"/>
+  </linearGradient></defs>
+  <rect width="1920" height="760" fill="url(#b)"/>
+  <circle cx="500" cy="400" r="250" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="720" cy="560" r="130" fill="rgba(255,255,255,0.1)"/>
+</svg>`;
+await sharp(Buffer.from(banner))
+  .jpeg({ quality: 84, mozjpeg: true })
+  .toFile(`${slidesOut}example.jpg`);
+
+console.log('예시 슬라이드 배너를 생성했습니다.');
+

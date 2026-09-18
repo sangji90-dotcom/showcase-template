@@ -1,6 +1,6 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { createProductSchema, pageSchema } from './lib/content/schema';
+import { createProductSchema, pageSchema, slideSchema } from './lib/content/schema';
 import { localImageSchema, remoteImageSchema } from './lib/content/image';
 import { getContentSource, getSanityEnv } from './lib/content/source';
 import { sanityProductsLoader } from './lib/sanity/loader';
@@ -46,4 +46,17 @@ const pages = defineCollection({
   schema: pageSchema,
 });
 
-export const collections = { products, pages };
+/**
+ * 홈 상단 슬라이드 배너.
+ * hero 프리셋이 'carousel' 일 때만 쓰입니다.
+ *
+ * 설정 파일이 아니라 콘텐츠로 둔 이유:
+ *  - 이미지가 빌드 시 최적화되어야 하고
+ *  - 배너는 자주 바뀌는 데다 고객사가 직접 고치는 경우가 많습니다
+ */
+const slides = defineCollection({
+  loader: glob({ base: './src/content/slides', pattern: '**/*.md' }),
+  schema: ({ image }) => slideSchema(image),
+});
+
+export const collections = { products, pages, slides };

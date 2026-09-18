@@ -121,6 +121,14 @@ const initial = siteConfig.productsPerPage;
     let keyword = '';
     let visible = step;
 
+    // 헤더 검색창·인기 검색어에서 /products/?q=... 로 넘어온 경우
+    // URL 값은 textContent/value 로만 다루므로 HTML로 해석되지 않습니다.
+    const q = (new URLSearchParams(location.search).get('q') || '').trim();
+    if (q) {
+      keyword = q.toLowerCase();
+      if (input) input.value = q;
+    }
+
     const matches = (el: HTMLElement) => {
       const catOk = category === 'all' || el.dataset.category === category;
       const kwOk = !keyword || (el.dataset.keywords || '').includes(keyword);

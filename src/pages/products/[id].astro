@@ -9,7 +9,7 @@ import {
   getPublishedProducts,
   getRelatedProducts,
   getCategoryLabel,
-  formatPrice,
+  getPriceView,
   STATUS_LABEL,
 } from '../../lib/products';
 import { breadcrumbSchema } from '../../lib/structured-data';
@@ -28,6 +28,7 @@ const { Content } = await render(product);
 const related = await getRelatedProducts(product);
 const specEntries = Object.entries(data.specs);
 const statusLabel = STATUS_LABEL[data.status];
+const price = getPriceView(data);
 
 // 구조화 데이터 — 구글 검색결과에 제품 카드로 노출될 수 있게 함
 const jsonLd = {
@@ -102,11 +103,30 @@ const breadcrumb = breadcrumbSchema([
 
       <div class="detail__info">
         <span class="badge">{getCategoryLabel(data.category)}</span>
+        {data.badge && <span class="badge badge--promo">{data.badge}</span>}
         {statusLabel && <span class="badge badge--status">{statusLabel}</span>}
 
         <h1 class="detail__title">{data.title}</h1>
         <p class="detail__summary">{data.summary}</p>
-        <p class="detail__price">{formatPrice(data.price, data.priceNote)}</p>
+
+        <p class="detail__price">
+          {
+            price.listText && (
+              <span class="detail__list-price">
+                <span class="visually-hidden">정가</span>
+                {price.listText}
+              </span>
+            )
+          }
+          <span class="detail__price-now">
+            {
+              price.discount !== undefined && (
+                <span class="detail__discount">{price.discount}%</span>
+              )
+            }
+            {price.text}
+          </span>
+        </p>
 
         {
           specEntries.length > 0 && (
@@ -229,6 +249,30 @@ const breadcrumb = breadcrumbSchema([
     font-size: var(--text-xl);
     font-weight: 700;
     margin-bottom: var(--space-6);
+  }
+
+  .detail__list-price {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+  }
+
+  .detail__price-now {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .detail__discount {
+    color: var(--color-sale);
+  }
+
+  .badge--promo {
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    margin-left: var(--space-2);
   }
 
   .badge--status {

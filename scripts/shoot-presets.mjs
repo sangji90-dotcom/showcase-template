@@ -3,7 +3,7 @@
  * 모바일 가로 스크롤 / 콘솔 에러를 검사합니다.
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { serveDist } from './lib/serve.mjs';
 
@@ -18,24 +18,48 @@ mkdirSync(OUT, { recursive: true });
 const CONFIG = 'site.config.ts';
 const original = readFileSync(CONFIG, 'utf8');
 
+/**
+ * carousel 은 슬라이드 콘텐츠가 있어야 렌더됩니다.
+ * 템플릿의 예시 슬라이드는 draft 라서, 이 조합에서만 잠시 켭니다.
+ * 고객사 프로젝트에는 이 파일이 없고 실제 배너가 있으므로 건드리지 않습니다.
+ */
+const SLIDE = 'src/content/slides/example.md';
+const slideOriginal = existsSync(SLIDE) ? readFileSync(SLIDE, 'utf8') : null;
+
 const combos = [
   ['stacked', 'card'],
   ['split', 'card'],
   ['minimal', 'overlay'],
   ['split', 'list'],
+  ['carousel', 'card'],
 ];
 
 const problems = [];
 
 try {
   for (const [hero, productCard] of combos) {
-    const re = /layout: \{\s*hero: '[a-z]+',\s*productCard: '[a-z]+',\s*\}/;
-    if (!re.test(original)) throw new Error('config 패치 실패 — 정규식 확인');
-    const patched = original.replace(
-      re,
-      `layout: {\n    hero: '${hero}',\n    productCard: '${productCard}',\n  }`
-    );
+    /**
+     * 값만 골라 바꿉니다.
+     * layout 블록 전체를 정규식으로 잡으면 설정에 항목이 하나 늘 때마다
+     * 이 스크립트가 깨집니다 (실제로 두 번 깨졌습니다).
+     */
+    const patched = original
+      .replace(/hero: '(?:stacked|split|minimal|carousel)'/, `hero: '${hero}'`)
+      .replace(/productCard: '(?:card|overlay|list)'/, `productCard: '${productCard}'`);
+
+    if (patched === original && !original.includes(`hero: '${hero}'`)) {
+      throw new Error('config 패치 실패 — site.config.ts 의 layout 값 형식을 확인하세요');
+    }
+
     writeFileSync(CONFIG, patched);
+    if (slideOriginal !== null) {
+      writeFileSync(
+        SLIDE,
+        hero === 'carousel'
+          ? slideOriginal.replace('draft: true', 'draft: false')
+          : slideOriginal
+      );
+    }
 
     const b = spawnSync('npm', ['run', 'build'], { encoding: 'utf8' });
     if (b.status !== 0) {
@@ -54,6 +78,10 @@ try {
 
       await page.goto(srv.url + '/', { waitUntil: 'load', timeout: 60000 });
       await page.screenshot({ path: `${OUT}/${hero}-${productCard}-home.png`, fullPage: false });
+
+      // 히어로가 실제로 그려졌는지 — carousel 은 콘텐츠가 없으면 통째로 사라집니다
+      const heroCount = await page.locator('.hero, [data-carousel]').count();
+      if (heroCount === 0) problems.push(`${hero}/${productCard}: 히어로가 렌더되지 않음`);
 
       await page.goto(srv.url + '/products/', { waitUntil: 'load', timeout: 60000 });
       await page.screenshot({ path: `${OUT}/${hero}-${productCard}-list.png`, fullPage: false });
@@ -82,6 +110,7 @@ try {
 
       if (errs.length) problems.push(`${hero}/${productCard}: 콘솔 에러 ${errs.join(' | ')}`);
       await browser.close();
+
       console.log(`${hero}/${productCard} ok`);
     } finally {
       await srv.close();
@@ -89,6 +118,7 @@ try {
   }
 } finally {
   writeFileSync(CONFIG, original);
+  if (slideOriginal !== null) writeFileSync(SLIDE, slideOriginal);
 }
 
 console.log(problems.length ? `\n문제:\n- ${problems.join('\n- ')}` : '\n문제 없음');

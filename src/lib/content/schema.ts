@@ -1,4 +1,5 @@
 import { z } from 'astro/zod';
+import type { ImageFunction } from 'astro:content';
 import siteConfig from '../../../site.config';
 
 /**
@@ -36,12 +37,61 @@ export function createProductSchema<T extends z.ZodType>(imageField: T) {
     price: z.number().int().nonnegative().optional(),
     priceNote: z.string().default('가격 문의'),
 
+    /**
+     * 정가. price 보다 클 때만 취소선과 할인율이 함께 표시됩니다.
+     *
+     * ⚠ 표시광고 관련 —
+     *   정가는 "실제로 그 가격에 판매한 적이 있는 값"이어야 합니다.
+     *   할인율을 크게 보이려고 임의로 올려 적으면 부당 표시에 해당할 수 있습니다.
+     *   고객사에 이 점을 반드시 전달하세요.
+     */
+    listPrice: z.number().int().nonnegative().optional(),
+
+    /** 카드 좌상단 배지 문구 (BEST, NEW, 한정수량 등). 6자 이내 권장 */
+    badge: z.string().max(12).optional(),
+
     featured: z.boolean().default(false),
     order: z.number().default(999),
     status: z.enum(['active', 'discontinued', 'coming-soon']).default('active'),
     draft: z.boolean().default(false),
 
     seoDescription: z.string().optional(),
+  });
+}
+
+/**
+ * 홈 슬라이드 배너.
+ * 이미지 위에 문구를 얹으므로 대비를 확보할 수단(overlay, textColor)을 둡니다.
+ */
+export function slideSchema(image: ImageFunction) {
+  return z.object({
+    /** 작은 윗줄 문구 (영문 제품명 등). 없으면 생략 */
+    eyebrow: z.string().optional(),
+    /** 큰 제목 — 줄바꿈은 그대로 반영됩니다 */
+    title: z.string().min(1),
+    /** 보조 설명 */
+    subtitle: z.string().optional(),
+    image: image(),
+    /** 배너를 누르면 이동할 주소 */
+    href: z.string().default('/products/'),
+    /** 버튼 문구. 비우면 버튼을 만들지 않습니다 */
+    cta: z.string().optional(),
+    /** 문구를 놓을 위치 */
+    align: z.enum(['left', 'center', 'right']).default('right'),
+    /** 배경 사진이 밝으면 dark, 어두우면 light */
+    textColor: z.enum(['dark', 'light']).default('dark'),
+    /**
+     * 사진 위에 깔 어둡기. 글자가 안 읽힐 때만 올리세요.
+     *
+     * 숫자가 아니라 단계로 둔 이유 —
+     * 임의의 숫자를 받으면 style 속성으로 넣어야 하는데,
+     * CSP는 해시로 style 속성까지 허용하지 못해 브라우저가 막아버립니다.
+     * (막히면 조용히 투명해져서 흰 글자가 안 보이게 됩니다.)
+     * 단계로 고정하면 CSS 클래스로 처리되어 그런 일이 없습니다.
+     */
+    overlay: z.enum(['none', 'light', 'medium', 'strong']).default('none'),
+    order: z.number().default(999),
+    draft: z.boolean().default(false),
   });
 }
 

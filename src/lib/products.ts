@@ -59,6 +59,36 @@ export function formatPrice(price: number | undefined, fallback: string) {
   return `${price.toLocaleString('ko-KR')}원`;
 }
 
+export interface PriceView {
+  /** 실제 판매가 문구 (가격이 없으면 priceNote) */
+  text: string;
+  /** 정가 문구. 할인 중일 때만 존재 */
+  listText?: string;
+  /** 할인율(%). 할인 중일 때만 존재 */
+  discount?: number;
+}
+
+/**
+ * 가격 표시 계산.
+ * 할인율은 정가·판매가에서 자동 계산합니다 — 두 값이 서로 어긋나는
+ * 상태(예: 정가만 내리고 할인율은 그대로)가 생기지 않도록 하기 위함입니다.
+ *
+ * 정가가 판매가보다 크지 않거나 반올림 할인율이 0%면 정가를 표시하지 않습니다.
+ */
+export function getPriceView(data: Product['data']): PriceView {
+  const { price, listPrice, priceNote } = data;
+  const text = formatPrice(price, priceNote);
+
+  if (price === undefined || listPrice === undefined || listPrice <= price) {
+    return { text };
+  }
+
+  const discount = Math.round((1 - price / listPrice) * 100);
+  if (discount < 1) return { text };
+
+  return { text, listText: formatPrice(listPrice, priceNote), discount };
+}
+
 export const STATUS_LABEL: Record<Product['data']['status'], string | null> = {
   active: null,
   discontinued: '단종',

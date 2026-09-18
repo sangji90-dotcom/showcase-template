@@ -33,8 +33,10 @@ Astro 7 (SSG) → Cloudflare Pages
 
 ```ts
 layout: {
-  hero: 'split',       // stacked | split | minimal
+  hero: 'split',       // stacked | split | minimal | carousel
   productCard: 'card', // card | overlay | list
+  featured: 'grid',    // grid | rows
+  homeSections: ['featured', 'categories', 'cta'],
 }
 ```
 
@@ -43,6 +45,7 @@ layout: {
 | `stacked` | 문구 위주 + 그라데이션 배경 | 제품 사진이 약할 때 가장 안전 |
 | `split` | 좌측 문구 + 우측 대표 제품 이미지 | 사진이 좋을 때 |
 | `minimal` | 큰 타이포만, 배경 없음 | 기술·산업재 톤 |
+| `carousel` | 풀블리드 슬라이드 배너 | 국내 쇼핑몰 톤. `src/content/slides` 사용 |
 
 | productCard | 구조 | 어울리는 경우 |
 | --- | --- | --- |
@@ -56,6 +59,38 @@ layout: {
 - `split`은 대표 제품 이미지를 쓰며, 상품이 하나도 없으면 `stacked`로 자동 강등됩니다
 - `list`를 고르면 목록 그리드가 1~2열로 자동 전환됩니다
 - 상세 페이지의 "함께 보는 제품"은 영역이 좁아 프리셋과 무관하게 항상 기본 카드입니다
+
+### 쇼핑몰처럼 보이게 하는 옵션들
+
+회원가입·장바구니·결제는 없지만, **보이는 형태만** 국내 쇼핑몰에 맞출 수 있습니다.
+전부 `site.config.ts`에서 켜고 끄며, 비워두면 해당 요소가 아예 렌더되지 않습니다.
+
+| 옵션 | 무엇이 생기나 | 끄는 법 |
+| --- | --- | --- |
+| `layout.hero: 'carousel'` | 상단 슬라이드 배너 | 다른 hero 값으로 |
+| `utilityNav` | 헤더 맨 위 얇은 보조 메뉴 줄 | 항목을 비우면 줄 자체가 사라짐 |
+| `quickLinks` | 우측 하단 고정 퀵 메뉴 (+ 맨 위로) | 비우면 표시 안 함 |
+| `promo` + `homeSections`에 `'promo'` | 기획전 배너 + 인기 검색어 | 둘 중 하나만 빼도 안 나옴 |
+| 상품의 `listPrice` | 정가 취소선 + 할인율 자동 계산 | 필드를 빼면 판매가만 표시 |
+| 상품의 `badge` | 카드 좌상단 배지 (BEST/NEW 등) | 필드를 빼면 배지 없음 |
+| `enableSearch` | 헤더 검색창 (+ 목록 검색창) | `false` |
+
+주의할 점 세 가지입니다.
+
+- **`utilityNav`에 로그인·장바구니·주문조회를 넣지 마세요.** 이 템플릿에는 회원·결제가
+  없어 링크를 걸면 죽은 링크가 됩니다. 고객사가 요청하면 기능부터 논의해야 합니다.
+- **`listPrice`는 실제로 그 가격에 판매한 적이 있는 값이어야 합니다.** 할인율을 크게
+  보이려고 임의로 올려 적으면 표시광고 문제가 될 수 있습니다. 고객사에 전달하세요.
+- 헤더 검색과 인기 검색어는 `/products/?q=...` 로 이동해 **목록 페이지에서** 걸러냅니다.
+  검색어는 `value`·`textContent`로만 다루므로 URL로 스크립트를 넣을 수 없습니다.
+
+슬라이드 배너는 설정이 아니라 콘텐츠입니다 (`src/content/slides/*.md`).
+이미지가 빌드 시 최적화되어야 하고, 배너는 고객사가 가장 자주 바꾸는 자리라서입니다.
+`example.md`를 복사해 `draft: false`로 바꾸면 바로 나옵니다.
+
+> 사진 위 어둡기(`overlay`)는 숫자가 아니라 `none / light / medium / strong` 단계입니다.
+> 임의의 숫자는 `style` 속성으로 들어가야 하는데, CSP가 style 속성까지는 해시로 허용하지
+> 못해 브라우저가 막아버립니다. 막히면 **조용히 투명해져서** 흰 글자가 안 보입니다.
 
 모든 조합을 한 번에 렌더해 확인하려면:
 
@@ -88,6 +123,7 @@ npm run preview      # 빌드 결과 확인
 npm run check        # 타입 검사
 npm run test:sanity  # CMS 연동 검증 (실제 Sanity 계정 불필요)
 npm run test:import  # 엑셀 일괄 등록 검증
+npm run test:tokens  # CSS 변수 참조 검증 (선언 안 된 var(--x) 색출)
 ```
 
 ---
@@ -110,6 +146,8 @@ specs:                          # 사양 표 (키: 값)
 tags: [PS-900, 방진]            # 검색 키워드 보강
 price: 189000                   # 숫자만. 비우면 priceNote 노출
 priceNote: 가격 문의
+listPrice: 210000               # 정가. price보다 클 때만 취소선+할인율(자동 계산)
+badge: BEST                     # 카드 좌상단 배지. 6자 이내 권장
 featured: true                  # 홈 대표 제품에 노출
 order: 1                        # 작을수록 앞
 status: active                  # active | discontinued | coming-soon
@@ -346,6 +384,10 @@ Sanity 무료 플랜은 문서 10,000개 / 20 seats / 월 250,000 API 요청이�
 - [ ] `public/favicon.svg` 교체
 - [ ] `src/content/pages/about.md` 회사소개 작성
 - [ ] `src/content/pages/privacy.md` 확정 (고객사 확인 필수)
+- [ ] (carousel 사용 시) `src/content/slides/example.md` 삭제, 실제 배너 투입
+- [ ] `utilityNav`에 회원·장바구니·주문조회 링크가 들어가지 않았는지 확인
+- [ ] `listPrice`를 쓴 상품은 **실제 판매 이력이 있는 정가**인지 고객사에 확인받기
+- [ ] `quickLinks`의 전화번호가 실제 번호인지 (`tel:` 링크)
 - [ ] 문의 폼 연결 및 **실제 수신 테스트**
 - [ ] (external 모드) `prefillEntry` 설정 — 제품 상세에서 넘어온 제품명이 폼에 채워지는지 확인
 
@@ -354,6 +396,7 @@ Sanity 무료 플랜은 문서 10,000개 / 20 seats / 월 250,000 API 요청이�
 - [ ] `npm run build` 성공
 - [ ] `npm run check` 에러 0
 - [ ] `npm run test:import` 전부 통과
+- [ ] `npm run test:tokens` 통과 (선언 안 된 CSS 변수 = 무효가 된 스타일)
 - [ ] (CMS 사용 시) `npm run test:sanity` 전부 통과
 - [ ] 모바일(390px)에서 가로 스크롤 없음
 - [ ] 브라우저 콘솔 에러 0 (CSP 위반 포함)

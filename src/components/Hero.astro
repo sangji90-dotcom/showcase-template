@@ -1,6 +1,7 @@
 ---
 import siteConfig from '../../site.config';
 import ProductImage from './ProductImage.astro';
+import HeroCarousel from './HeroCarousel.astro';
 import { getFeaturedProducts } from '../lib/products';
 
 /**
@@ -15,6 +16,9 @@ const showcase = featured[0];
 const effective = variant === 'split' && !showcase ? 'stacked' : variant;
 ---
 
+{variant === 'carousel' && <HeroCarousel />}
+
+{variant !== 'carousel' && (
 <section class="hero" data-variant={effective}>
   <div class="container hero__inner">
     <div class="hero__body">
@@ -43,6 +47,7 @@ const effective = variant === 'split' && !showcase ? 'stacked' : variant;
     }
   </div>
 </section>
+)}
 
 <style>
   .hero {

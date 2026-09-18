@@ -37,8 +37,10 @@ export interface LayoutPreset {
    *  stacked — 문구 위주, 그라데이션 배경. 제품 이미지가 약할 때 안전
    *  split   — 좌측 문구 + 우측 대표 제품 이미지. 사진이 좋을 때
    *  minimal — 큰 타이포만, 배경 없음. 기술·산업재 느낌
+   *  carousel — 풀블리드 슬라이드 배너. 국내 쇼핑몰에서 흔한 형태로,
+   *             src/content/slides 의 내용을 사용합니다
    */
-  hero: 'stacked' | 'split' | 'minimal';
+  hero: 'stacked' | 'split' | 'minimal' | 'carousel';
 
   /**
    * 상품 카드 구조.
@@ -47,6 +49,30 @@ export interface LayoutPreset {
    *  list    — 좌측 이미지 + 우측 텍스트 가로형. 사양 설명이 긴 제품
    */
   productCard: 'card' | 'overlay' | 'list';
+
+  /**
+   * 홈의 대표 제품 섹션 구성.
+   *  grid — 카드 4개를 한 줄에. 규격품이 많고 "목록"을 빨리 보여줄 때
+   *  rows — 제품 하나씩 이미지와 설명을 좌우로. 제품 수가 적고
+   *         하나하나 설명할 게 있는 브랜드(화장품·식품·가구 등)
+   */
+  featured: 'grid' | 'rows';
+
+  /**
+   * 홈에 어떤 섹션을 어떤 순서로 놓을지.
+   *
+   * 색과 카드 모양만 바꾸면 고객사마다 "같은 사이트"로 보입니다.
+   * 인상을 가장 크게 바꾸는 건 **홈이 무엇을 먼저 보여주는가**이므로,
+   * 섹션 자체를 배열로 조립합니다. 빼고 싶은 섹션은 목록에서 지우면 됩니다.
+   *
+   *  message    — 브랜드 한마디 (config 의 brandMessage 사용)
+   *  featured   — 대표 제품
+   *  categories — 카테고리 카드
+   *  cta        — 문의 유도 박스
+   *
+   * 히어로는 항상 맨 위에 옵니다.
+   */
+  homeSections: Array<'message' | 'featured' | 'categories' | 'promo' | 'cta'>;
 }
 
 export interface SiteConfig {
@@ -68,7 +94,49 @@ export interface SiteConfig {
   /** 레이아웃 프리셋 — 고객사마다 구조를 다르게 가져가는 축 */
   layout: LayoutPreset;
 
+  /**
+   * 홈의 'message' 섹션에 들어갈 브랜드 한마디.
+   * homeSections 에 'message' 가 없으면 쓰이지 않습니다.
+   */
+  brandMessage?: {
+    title: string;
+    body: string;
+  };
+
   nav: NavItem[];
+
+  /**
+   * 헤더 맨 위 얇은 줄 (공지·FAQ·고객센터 등).
+   * 국내 쇼핑몰에서 흔한 형태입니다. 비우면 줄 자체가 안 나옵니다.
+   *
+   * ⚠ 로그인·장바구니·주문조회는 넣지 마세요.
+   *   이 템플릿에는 회원·결제 기능이 없어 링크만 걸면 죽은 링크가 됩니다.
+   */
+  utilityNav?: {
+    left?: NavItem[];
+    right?: NavItem[];
+  };
+
+  /**
+   * 화면 우측에 고정되는 퀵 메뉴.
+   * 비우면 표시하지 않습니다. 맨 위로 버튼은 자동으로 붙습니다.
+   */
+  quickLinks?: NavItem[];
+
+  /**
+   * 홈의 'promo' 섹션 — 기획전 배너 하나와 인기 검색어.
+   * homeSections 에 'promo' 가 없으면 쓰이지 않습니다.
+   */
+  promo?: {
+    title: string;
+    description?: string;
+    href: string;
+    cta?: string;
+    /** public/ 기준 절대경로. 예: /promo-summer.jpg */
+    image?: string;
+    /** 인기 검색어 — 누르면 제품 목록에서 해당 키워드로 검색됩니다 */
+    keywords?: string[];
+  };
 
   /**
    * 상품 카테고리 정의.
@@ -190,12 +258,26 @@ export const siteConfig: SiteConfig = {
   layout: {
     hero: 'split',
     productCard: 'card',
+    featured: 'grid',
+    homeSections: ['featured', 'categories', 'cta'],
   },
 
   nav: [
     { label: '제품', href: '/products' },
     { label: '회사소개', href: '/about' },
     { label: '문의', href: '/contact' },
+  ],
+
+  utilityNav: {
+    right: [
+      { label: '회사소개', href: '/about/' },
+      { label: '문의', href: '/contact/' },
+    ],
+  },
+
+  quickLinks: [
+    { label: '문의하기', href: '/contact/' },
+    { label: '전화', href: 'tel:02-0000-0000' },
   ],
 
   categories: [

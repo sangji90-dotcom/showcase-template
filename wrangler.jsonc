@@ -12,6 +12,15 @@
   // ============================================================
   "name": "showcase-template",
   "compatibility_date": "2026-09-18",
+
+  // Cloudflare 대시보드의 "Build command" 가 비어 있으면
+  // npm install 직후 바로 wrangler deploy 로 넘어가 dist 가 없어 실패합니다.
+  //   ✘ The directory specified by the "assets.directory" field ... does not exist
+  // 여기에 빌드 단계를 두면 wrangler 가 배포 전에 직접 실행해 줍니다.
+  // (대시보드에 Build command 를 넣었다면 빌드가 두 번 돌므로 이 블록을 지워도 됩니다)
+  "build": {
+    "command": "npm run build"
+  },
   "assets": {
     "directory": "./dist"
   }

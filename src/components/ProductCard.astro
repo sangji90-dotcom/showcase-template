@@ -15,6 +15,13 @@ interface Props {
 const { product, eager = false, variant } = Astro.props;
 const shape = variant ?? siteConfig.layout.productCard;
 
+/**
+ * 이미지 비율은 카드 모양마다 기본값이 있고, 설정에서 덮어쓸 수 있습니다.
+ * 임의의 숫자가 아니라 정해진 값만 받는 이유는 CSP 때문입니다 —
+ * style 속성으로 비율을 넣으면 브라우저가 막고, 막힌 티도 안 납니다.
+ */
+const ratio = siteConfig.layout.imageRatio;
+
 const { data } = product;
 const statusLabel = STATUS_LABEL[data.status];
 const price = getPriceView(data);
@@ -27,7 +34,7 @@ const sizes =
     : '(max-width: 640px) 50vw, 300px';
 ---
 
-<article class="card" data-shape={shape}>
+<article class="card" data-shape={shape} data-ratio={ratio}>
   <a href={`/products/${product.id}/`} class="card__link">
     <div class="card__media">
       <ProductImage
@@ -288,6 +295,17 @@ const sizes =
     -webkit-line-clamp: 3;
     line-clamp: 3;
   }
+
+  /**
+   * 설정으로 지정한 비율은 카드 모양별 기본값을 덮어씁니다.
+   * 아래 모양별 규칙과 특정도가 같으므로 **뒤에 오는 이 블록이 이깁니다** —
+   * 순서를 바꾸면 조용히 무효가 되니 위치를 지키세요.
+   */
+  .card[data-ratio='4:3'] .card__media { aspect-ratio: 4 / 3; }
+  .card[data-ratio='1:1'] .card__media { aspect-ratio: 1 / 1; }
+  .card[data-ratio='3:4'] .card__media { aspect-ratio: 3 / 4; }
+  .card[data-ratio='2:3'] .card__media { aspect-ratio: 2 / 3; }
+  .card[data-ratio='16:9'] .card__media { aspect-ratio: 16 / 9; }
 
   @media (max-width: 640px) {
     .card[data-shape='list'] .card__link {

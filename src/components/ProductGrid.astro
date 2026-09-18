@@ -1,4 +1,5 @@
 ---
+import T from '../lib/terms';
 import siteConfig from '../../site.config';
 import type { Product } from '../lib/products';
 import ProductCard from './ProductCard.astro';
@@ -13,7 +14,7 @@ interface Props {
 const {
   products,
   searchable = false,
-  emptyMessage = '표시할 제품이 없습니다.',
+  emptyMessage = T.emptyShort,
 } = Astro.props;
 ---
 

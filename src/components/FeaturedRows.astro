@@ -1,4 +1,5 @@
 ---
+import siteConfig from '../../site.config';
 import ProductImage from './ProductImage.astro';
 import type { Product } from '../lib/products';
 import { getCategoryLabel, getPriceView, STATUS_LABEL } from '../lib/products';
@@ -20,6 +21,8 @@ const { products } = Astro.props;
 
 /** 사양은 앞에서 3개까지만 — 홈에서 표를 다 보여줄 필요는 없습니다 */
 const SPEC_LIMIT = 3;
+
+const ratio = siteConfig.layout.imageRatio;
 ---
 
 <div class="rows">
@@ -32,7 +35,7 @@ const SPEC_LIMIT = 3;
 
       return (
         <article class="row" data-flip={index % 2 === 1 ? 'true' : 'false'}>
-          <a href={`/products/${product.id}/`} class="row__media" tabindex="-1" aria-hidden="true">
+          <a href={`/products/${product.id}/`} class="row__media" data-ratio={ratio} tabindex="-1" aria-hidden="true">
             <ProductImage
               image={data.thumbnail}
               alt={data.title}
@@ -121,6 +124,12 @@ const SPEC_LIMIT = 3;
   }
 
   /* prop 으로 넘긴 class 에는 scoped 해시가 붙지 않으므로 :global 필요 */
+  /* 설정의 layout.imageRatio 가 있으면 기본 4:3 을 덮어씁니다 */
+  .row__media[data-ratio='1:1'] :global(.row__img) { aspect-ratio: 1 / 1; }
+  .row__media[data-ratio='3:4'] :global(.row__img) { aspect-ratio: 3 / 4; }
+  .row__media[data-ratio='2:3'] :global(.row__img) { aspect-ratio: 2 / 3; }
+  .row__media[data-ratio='16:9'] :global(.row__img) { aspect-ratio: 16 / 9; }
+
   .row__media :global(.row__img) {
     width: 100%;
     aspect-ratio: 4 / 3;

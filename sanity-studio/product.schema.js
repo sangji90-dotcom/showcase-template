@@ -126,6 +126,52 @@ export const product = {
       initialValue: '가격 문의',
     },
     {
+      name: 'listPrice',
+      title: '정가 (원)',
+      type: 'number',
+      description:
+        '판매가보다 클 때만 취소선과 할인율이 표시됩니다. ' +
+        '실제로 그 가격에 판매한 적이 있는 값만 넣으세요 (표시광고 문제가 됩니다).',
+      validation: (Rule) => Rule.min(0).integer(),
+    },
+    {
+      name: 'badge',
+      title: '배지 문구',
+      type: 'string',
+      description: 'BEST, NEW, 한정수량 등. 6자 이내를 권장합니다.',
+      validation: (Rule) => Rule.max(12),
+    },
+    {
+      name: 'externalLinks',
+      title: '외부 구매처',
+      type: 'array',
+      description:
+        '스마트스토어·오픈마켓 등 실제 판매 페이지. 상세 페이지 하단에 버튼으로 나옵니다.',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'label',
+              title: '표시 이름',
+              type: 'string',
+              validation: (Rule) => Rule.required().max(30),
+            },
+            {
+              name: 'url',
+              title: '주소',
+              type: 'url',
+              description: 'https 주소만 넣을 수 있습니다.',
+              validation: (Rule) =>
+                Rule.required().uri({ scheme: ['https'] }),
+            },
+          ],
+          preview: { select: { title: 'label', subtitle: 'url' } },
+        },
+      ],
+      validation: (Rule) => Rule.max(6),
+    },
+    {
       name: 'featured',
       title: '홈 대표 제품으로 노출',
       type: 'boolean',

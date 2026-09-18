@@ -1,5 +1,6 @@
 ---
 import siteConfig from '../../site.config';
+import T from '../lib/terms';
 import type { Product } from '../lib/products';
 import ProductCard from './ProductCard.astro';
 import { getCategoriesWithCount } from '../lib/products';
@@ -22,6 +23,8 @@ const initial = siteConfig.productsPerPage;
   data-browser
   data-initial={initial}
   data-active-category={activeCategory ?? 'all'}
+  data-count-all={T.countAllTemplate}
+  data-count-some={T.countTemplate}
 >
   {
     (showFilter || siteConfig.enableSearch) && (
@@ -42,12 +45,12 @@ const initial = siteConfig.productsPerPage;
         {siteConfig.enableSearch && (
           <div class="browser__search">
             <label for="product-search" class="visually-hidden">
-              제품 검색
+              {T.searchLabel}
             </label>
             <input
               id="product-search"
               type="search"
-              placeholder="제품명·모델명 검색"
+              placeholder={T.searchPlaceholder}
               autocomplete="off"
               data-search-input
             />
@@ -62,7 +65,7 @@ const initial = siteConfig.productsPerPage;
     단계를 건너뛰게 됩니다. 스크린리더가 구조를 잘못 읽으므로
     시각적으로 숨긴 h2를 넣어 계층을 메웁니다.
   */}
-  <h2 class="visually-hidden">제품 목록</h2>
+  <h2 class="visually-hidden">{T.itemList}</h2>
 
   <p class="browser__count" data-count-label aria-live="polite"></p>
 
@@ -89,7 +92,7 @@ const initial = siteConfig.productsPerPage;
   </div>
 
   <p class="browser__empty" data-empty hidden>
-    조건에 맞는 제품이 없습니다. 검색어나 카테고리를 바꿔보세요.
+    {T.empty}
   </p>
 
   <div class="browser__more">
@@ -143,10 +146,12 @@ const initial = siteConfig.productsPerPage;
       if (emptyEl) emptyEl.hidden = matched.length > 0;
       if (moreBtn) moreBtn.hidden = matched.length <= visible;
       if (countEl) {
-        countEl.textContent =
+        // 문구는 서버에서 data 속성으로 넘어옵니다 (고객사마다 "제품/도서/작품"이 다름)
+        const template =
           matched.length === items.length
-            ? `전체 ${items.length}개 제품`
-            : `${matched.length}개 제품`;
+            ? root.dataset.countAll || '전체 {n}개'
+            : root.dataset.countSome || '{n}개';
+        countEl.textContent = template.replace('{n}', String(matched.length));
       }
     };
 

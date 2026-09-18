@@ -1,4 +1,5 @@
 ---
+import T from '../../lib/terms';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProductBrowser from '../../components/ProductBrowser.astro';
 import { getPublishedProducts } from '../../lib/products';
@@ -7,15 +8,15 @@ const products = await getPublishedProducts();
 ---
 
 <BaseLayout
-  title="제품"
-  description="전체 제품 목록입니다. 카테고리와 검색으로 원하는 제품을 찾아보세요."
+  title={T.item}
+  description={T.listPageDesc}
 >
   <section class="section">
     <div class="container">
       <div class="section__head">
-        <h1 class="section__title">제품</h1>
+        <h1 class="section__title">{T.item}</h1>
         <p class="section__desc">
-          카테고리를 선택하거나 검색해 원하는 제품을 찾아보세요.
+          {T.listPageLead}
         </p>
       </div>
 

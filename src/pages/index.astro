@@ -1,5 +1,6 @@
 ---
 import siteConfig from '../../site.config';
+import T from '../lib/terms';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ProductGrid from '../components/ProductGrid.astro';
@@ -47,8 +48,8 @@ const { brandMessage } = siteConfig;
           <section class="section">
             <div class="container">
               <div class="section__head">
-                <h2 class="section__title">대표 제품</h2>
-                <p class="section__desc">가장 많이 찾는 제품을 모았습니다.</p>
+                <h2 class="section__title">{T.featuredTitle}</h2>
+                <p class="section__desc">{T.featuredDesc}</p>
               </div>
 
               {siteConfig.layout.featured === 'rows' ? (
@@ -59,7 +60,7 @@ const { brandMessage } = siteConfig;
 
               <div class="more">
                 <a href="/products/" class="btn btn--ghost">
-                  전체 제품 보기
+                  {T.viewAll}
                 </a>
               </div>
             </div>
@@ -73,13 +74,13 @@ const { brandMessage } = siteConfig;
             <div class="container">
               <div class="section__head">
                 <h2 class="section__title">카테고리</h2>
-                <p class="section__desc">용도별로 제품을 찾아보세요.</p>
+                <p class="section__desc">{T.categoriesDesc}</p>
               </div>
               <div class="cats">
                 {categories.map((c) => (
                   <a href={`/products/category/${c.id}/`} class="cat">
                     <span class="cat__label">{c.label}</span>
-                    <span class="cat__count">{c.count}개 제품</span>
+                    <span class="cat__count">{T.countOf(c.count)}</span>
                     {c.description && <span class="cat__desc">{c.description}</span>}
                   </a>
                 ))}
@@ -97,8 +98,8 @@ const { brandMessage } = siteConfig;
         return (
           <section class="section">
             <div class="container cta">
-              <h2 class="cta__title">찾는 제품이 없으신가요?</h2>
-              <p class="cta__desc">용도와 수량을 알려주시면 적합한 제품을 안내해 드립니다.</p>
+              <h2 class="cta__title">{T.ctaTitle}</h2>
+              <p class="cta__desc">{T.ctaDesc}</p>
               <a href="/contact/" class="btn btn--primary">
                 문의하기
               </a>

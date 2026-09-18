@@ -19,6 +19,11 @@ interface SanitySpecRow {
   value?: string;
 }
 
+interface SanityLinkRow {
+  label?: string;
+  url?: string;
+}
+
 interface SanityImageRow {
   url?: string;
   width?: number;
@@ -38,6 +43,9 @@ interface SanityProductDoc {
   tags?: string[] | null;
   price?: number | null;
   priceNote?: string | null;
+  listPrice?: number | null;
+  badge?: string | null;
+  externalLinks?: (SanityLinkRow | null)[] | null;
   featured?: boolean | null;
   order?: number | null;
   status?: string | null;
@@ -54,6 +62,17 @@ function mapSpecs(rows: SanitySpecRow[] | null | undefined): Record<string, stri
     if (row?.key && row.value) out[row.key] = row.value;
   }
   return out;
+}
+
+/**
+ * 라벨과 주소가 모두 있는 항목만 남깁니다.
+ * 주소 형식(https 여부) 검증은 스키마가 합니다 — 여기서 걸러버리면
+ * 잘못 입력된 링크가 조용히 사라져 아무도 모르게 됩니다.
+ */
+function mapLinks(rows: (SanityLinkRow | null)[] | null | undefined) {
+  return (rows ?? [])
+    .filter((row): row is SanityLinkRow => Boolean(row?.label && row?.url))
+    .map((row) => ({ label: row.label as string, url: row.url as string }));
 }
 
 function mapImage(row: SanityImageRow | null | undefined) {
@@ -79,6 +98,9 @@ function mapProduct(doc: SanityProductDoc) {
     tags: doc.tags ?? [],
     ...(typeof doc.price === 'number' ? { price: doc.price } : {}),
     ...(doc.priceNote ? { priceNote: doc.priceNote } : {}),
+    ...(typeof doc.listPrice === 'number' ? { listPrice: doc.listPrice } : {}),
+    ...(doc.badge ? { badge: doc.badge } : {}),
+    externalLinks: mapLinks(doc.externalLinks),
     featured: doc.featured ?? false,
     order: doc.order ?? 999,
     status: doc.status ?? 'active',

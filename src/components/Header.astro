@@ -1,5 +1,6 @@
 ---
 import siteConfig from '../../site.config';
+import T from '../lib/terms';
 
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
@@ -74,13 +75,13 @@ const showSearch = siteConfig.enableSearch;
         showSearch && (
           <form class="header__search" action="/products/" method="get" role="search">
             <label for="header-q" class="visually-hidden">
-              제품 검색
+              {T.searchLabel}
             </label>
             <input
               id="header-q"
               name="q"
               type="search"
-              placeholder="제품 검색"
+              placeholder={T.searchLabel}
               autocomplete="off"
             />
             <button type="submit" aria-label="검색">

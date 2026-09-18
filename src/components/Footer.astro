@@ -1,5 +1,6 @@
 ---
 import siteConfig from '../../site.config';
+import T from '../lib/terms';
 import { getCategoriesWithCount } from '../lib/products';
 
 const categories = await getCategoriesWithCount();
@@ -14,8 +15,8 @@ const { contact } = siteConfig;
       <p class="footer__muted">{siteConfig.tagline}</p>
     </div>
 
-    <nav class="footer__col" aria-label="제품 카테고리">
-      <p class="footer__head">제품</p>
+    <nav class="footer__col" aria-label={`${T.item} 카테고리`}>
+      <p class="footer__head">{T.item}</p>
       {
         categories.map((c) => (
           <a href={`/products/category/${c.id}/`} class="footer__link">

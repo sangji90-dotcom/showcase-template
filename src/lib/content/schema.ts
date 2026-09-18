@@ -50,6 +50,40 @@ export function createProductSchema<T extends z.ZodType>(imageField: T) {
     /** 카드 좌상단 배지 문구 (BEST, NEW, 한정수량 등). 6자 이내 권장 */
     badge: z.string().max(12).optional(),
 
+    /**
+     * 외부 구매처 링크 (상세 페이지 하단에 버튼으로 노출).
+     *
+     * 이 템플릿에는 장바구니·결제가 없습니다. 고객사가 이미 네이버 스마트스토어나
+     * 오픈마켓에서 팔고 있다면, 거기로 보내는 것이 가장 현실적인 구매 동선입니다.
+     *
+     * https 만 허용합니다 —
+     *  - 값이 CMS에서 올 수 있고(신뢰 경계 밖), javascript:/data: 가 들어오면
+     *    링크를 누르는 순간 스크립트가 실행됩니다.
+     *  - //evil.com 같은 프로토콜 상대 주소도 URL 파싱에서 걸러집니다.
+     *  - http 를 막는 이유는, 결제 페이지로 보내는 링크가 평문이면 안 되기 때문입니다.
+     *
+     * 형식이 틀리면 빌드가 실패합니다. 조용히 무시하면 링크가 사라진 걸
+     * 아무도 모른 채 배포되기 때문에 일부러 실패시킵니다.
+     */
+    externalLinks: z
+      .array(
+        z.object({
+          label: z.string().min(1).max(30),
+          url: z.string().refine(
+            (v) => {
+              try {
+                return new URL(v).protocol === 'https:';
+              } catch {
+                return false;
+              }
+            },
+            { message: 'externalLinks.url 은 https:// 로 시작하는 절대 주소여야 합니다' }
+          ),
+        })
+      )
+      .max(6)
+      .default([]),
+
     featured: z.boolean().default(false),
     order: z.number().default(999),
     status: z.enum(['active', 'discontinued', 'coming-soon']).default('active'),

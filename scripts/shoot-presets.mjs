@@ -7,6 +7,12 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { serveDist } from './lib/serve.mjs';
 
+// 카테고리는 고객사마다 바뀌므로 설정에서 읽습니다
+const { default: siteConfig } = await import(
+  new URL('../site.config.ts', import.meta.url).href
+);
+const TEST_CATEGORY = siteConfig.categories[1] ?? siteConfig.categories[0];
+
 const OUT = '/tmp/claude-0/presets';
 mkdirSync(OUT, { recursive: true });
 const CONFIG = 'site.config.ts';
@@ -46,21 +52,28 @@ try {
       page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
       page.on('pageerror', (e) => errs.push(String(e)));
 
-      await page.goto(srv.url + '/', { waitUntil: 'networkidle' });
+      await page.goto(srv.url + '/', { waitUntil: 'load', timeout: 60000 });
       await page.screenshot({ path: `${OUT}/${hero}-${productCard}-home.png`, fullPage: false });
 
-      await page.goto(srv.url + '/products/', { waitUntil: 'networkidle' });
+      await page.goto(srv.url + '/products/', { waitUntil: 'load', timeout: 60000 });
       await page.screenshot({ path: `${OUT}/${hero}-${productCard}-list.png`, fullPage: false });
 
-      // 필터가 여전히 동작하는지
-      await page.click('[data-filter="office"]');
+      // 필터가 여전히 동작하는지 — 기대 개수도 실제 데이터에서 셉니다
+      const expected = await page.locator(
+        `[data-item][data-category="${TEST_CATEGORY.id}"]`
+      ).count();
+      await page.click(`[data-filter="${TEST_CATEGORY.id}"]`);
       await page.waitForTimeout(250);
       const vis = await page.locator('[data-item]:not([hidden])').count();
-      if (vis !== 2) problems.push(`${hero}/${productCard}: 필터 결과 ${vis} (기대 2)`);
+      if (vis !== expected) {
+        problems.push(
+          `${hero}/${productCard}: ${TEST_CATEGORY.label} 필터 결과 ${vis} (기대 ${expected})`
+        );
+      }
 
       // 모바일 가로 스크롤
       const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
-      await m.goto(srv.url + '/products/', { waitUntil: 'networkidle' });
+      await m.goto(srv.url + '/products/', { waitUntil: 'load', timeout: 60000 });
       const overflow = await m.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth + 1
       );

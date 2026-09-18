@@ -187,16 +187,23 @@ const localBuild = spawnSync('npm', ['run', 'build'], {
   env: { ...process.env, CONTENT_SOURCE: 'local' },
 });
 check('[회귀] 로컬 마크다운 모드 빌드 성공', localBuild.status === 0);
-check(
-  '[회귀] 로컬 모드에서 마크다운 상품 페이지 생성',
-  existsSync(`${ROOT}dist/products/pro-shield-900/index.html`)
-);
+/**
+ * 특정 상품 slug 에 의존하면 데모 데이터를 바꿀 때마다 테스트가 깨집니다.
+ * 실제 생성된 상품 페이지 중 아무거나 하나를 골라 검사합니다.
+ */
+const { readdirSync } = await import('node:fs');
+const localProducts = existsSync(`${ROOT}dist/products`)
+  ? readdirSync(`${ROOT}dist/products`, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && e.name !== 'category')
+      .map((e) => `${ROOT}dist/products/${e.name}/index.html`)
+      .filter((f) => existsSync(f))
+  : [];
+
+check('[회귀] 로컬 모드에서 마크다운 상품 페이지 생성', localProducts.length > 0);
 check(
   '[회귀] 로컬 모드 CSP에는 Sanity CDN이 없음',
-  existsSync(`${ROOT}dist/products/pro-shield-900/index.html`) &&
-    !/img-src[^;]*cdn\.sanity\.io/.test(
-      readFileSync(`${ROOT}dist/products/pro-shield-900/index.html`, 'utf8')
-    )
+  localProducts.length > 0 &&
+    !/img-src[^;]*cdn\.sanity\.io/.test(readFileSync(localProducts[0], 'utf8'))
 );
 
 console.log(`\n통과 ${pass.length}건`);

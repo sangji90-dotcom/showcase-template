@@ -10,6 +10,12 @@
  */
 import { createServer } from 'node:http';
 
+// 카테고리는 고객사마다 바뀌므로 설정에서 읽습니다
+const { default: siteConfig } = await import(
+  new URL('../site.config.ts', import.meta.url).href
+);
+const CAT = siteConfig.categories.map((c) => c.id);
+
 const IMG = (name) => ({
   url: `https://cdn.sanity.io/images/mock/production/${name}-1200x900.jpg`,
   width: 1200,
@@ -23,7 +29,7 @@ const products = [
     id: 'cms-shield-900',
     title: 'CMS 프로쉴드 900',
     summary: 'CMS에서 불러온 산업용 보호 모듈입니다.',
-    category: 'industrial',
+    category: CAT[0],
     thumbnail: IMG('shield'),
     gallery: [IMG('shield-2')],
     specs: [
@@ -98,7 +104,7 @@ const products = [
     id: 'cms-lamp-300',
     title: 'CMS 필드램프 300',
     summary: 'CMS에서 불러온 충전식 작업등입니다.',
-    category: 'office',
+    category: CAT[1],
     thumbnail: IMG('lamp'),
     gallery: [],
     specs: [{ key: '광량', value: '3,000 lm' }],
@@ -118,7 +124,7 @@ const products = [
     id: null,
     title: 'slug 없는 문서',
     summary: '이 문서는 건너뛰어져야 합니다.',
-    category: 'accessory',
+    category: CAT[2],
     thumbnail: IMG('noslug'),
     specs: [],
     _updatedAt: '2026-09-03T00:00:00Z',

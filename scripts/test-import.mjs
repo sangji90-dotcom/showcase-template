@@ -33,11 +33,16 @@ const pass = [];
 const fail = [];
 const check = (name, ok, detail = '') => (ok ? pass : fail).push(detail ? `${name} — ${detail}` : name);
 
-const CATEGORIES = [
-  { id: 'industrial', label: '산업용' },
-  { id: 'office', label: '사무용' },
-  { id: 'accessory', label: '액세서리' },
-];
+/**
+ * 카테고리는 고객사마다 바뀝니다.
+ * 테스트가 값을 하드코딩하면 site.config.ts 를 고칠 때마다 깨지므로
+ * 설정에서 읽어옵니다.
+ */
+const { default: siteConfig } = await import(
+  new URL('../site.config.ts', import.meta.url).href
+);
+const CATEGORIES = siteConfig.categories;
+const CAT = CATEGORIES[0];
 
 // ---------------------------------------------------------------- 값 변환
 
@@ -55,10 +60,10 @@ check('대표: "O" → true', parseBoolean('O') === true);
 check('대표: "예" → true', parseBoolean('예') === true);
 check('대표: 빈 값 → false', parseBoolean('') === false);
 
-check('카테고리: 한글 label 매칭', matchCategory('산업용', CATEGORIES) === 'industrial');
-check('카테고리: id 직접 입력', matchCategory('office', CATEGORIES) === 'office');
-check('카테고리: 부분 일치 "산업용품"', matchCategory('산업용품', CATEGORIES) === 'industrial');
-check('카테고리: 없는 값 → null', matchCategory('식품', CATEGORIES) === null);
+check(`카테고리: 한글 label 매칭 ("${CAT.label}")`, matchCategory(CAT.label, CATEGORIES) === CAT.id);
+check('카테고리: id 직접 입력', matchCategory(CATEGORIES[1].id, CATEGORIES) === CATEGORIES[1].id);
+check('카테고리: 부분 일치', matchCategory(`${CAT.label} 제품`, CATEGORIES) === CAT.id);
+check('카테고리: 없는 값 → null', matchCategory('존재하지않는분류', CATEGORIES) === null);
 
 check(
   'slug: 제품명의 모델명 추출',
@@ -109,7 +114,7 @@ const before = await readdir(CONTENT_DIR);
 try {
   // EUC-KR CSV — 한글 엑셀에서 "CSV로 저장"하면 이렇게 떨어집니다
   const euckrPath = path.join(work, 'euckr.csv');
-  const csvText = '제품명,한줄설명,분류,판매가\n방진 커버 (EK-1),한글 인코딩 확인,산업용,10000\n';
+  const csvText = `제품명,한줄설명,분류,판매가\n방진 커버 (EK-1),한글 인코딩 확인,${CAT.label},10000\n`;
   await writeFile(euckrPath, iconv.encode(csvText, 'euc-kr'));
   const euckr = await readSheet(euckrPath);
   check('CSV: EUC-KR 자동 인식', euckr.source.includes('euc-kr'), euckr.source);
@@ -128,7 +133,7 @@ try {
   info.addRow(['제품명', '필수입니다']);
   const data = wb.addWorksheet('상품목록');
   data.addRow(['제품명', '한줄설명', '분류', '사진파일']);
-  data.addRow(['테스트 커버 (TS-1)', '시트 선택 확인', '산업용', 'ts-1.jpg']);
+  data.addRow(['테스트 커버 (TS-1)', '시트 선택 확인', CAT.label, 'ts-1.jpg']);
   const xlsxPath = path.join(work, 'two-sheets.xlsx');
   await wb.xlsx.writeFile(xlsxPath);
 
@@ -156,7 +161,7 @@ try {
   const mdPath = path.join(CONTENT_DIR, 'ts-1.md');
   const md = await readFile(mdPath, 'utf8').catch(() => '');
   check('생성: ts-1.md 존재', md.length > 0);
-  check('생성: 카테고리가 id로 변환', md.includes('category: industrial'));
+  check('생성: 카테고리가 id로 변환', md.includes(`category: ${CAT.id}`));
   check('생성: thumbnail 경로', md.includes('thumbnail: ../../assets/products/ts-1.jpg'));
 
   const meta = await sharp(path.join(ASSET_DIR, 'ts-1.jpg')).metadata();

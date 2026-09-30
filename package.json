@@ -18,7 +18,8 @@
     "import": "node scripts/import-products.mjs",
     "make-template": "node scripts/make-product-template.mjs",
     "studio:sync": "node scripts/sync-studio.mjs",
-    "export:sanity": "node scripts/export-to-sanity.mjs"
+    "export:sanity": "node scripts/export-to-sanity.mjs",
+    "test:contrast": "node scripts/test-contrast.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

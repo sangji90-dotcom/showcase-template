@@ -28,7 +28,13 @@ const { contact } = siteConfig;
 
     <div class="footer__col">
       <p class="footer__head">연락처</p>
-      <a href={`tel:${contact.phone.replace(/-/g, '')}`} class="footer__link">{contact.phone}</a>
+      {
+        /* 전화번호를 안 받았거나 공개하지 않기로 한 경우 줄 자체를 뺍니다.
+           000-0000-0000 같은 가짜 번호를 두면 눌러보는 사람이 생깁니다 */
+        contact.phone && (
+          <a href={`tel:${contact.phone.replace(/-/g, '')}`} class="footer__link">{contact.phone}</a>
+        )
+      }
       <a href={`mailto:${contact.email}`} class="footer__link">{contact.email}</a>
       <p class="footer__muted footer__address">{contact.address}</p>
     </div>

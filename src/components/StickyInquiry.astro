@@ -32,13 +32,18 @@ const phone = siteConfig.contact.phone;
 
 <div class="sticky-cta">
   <div class="sticky-cta__inner">
-    <a
-      href={`tel:${phone.replace(/-/g, '')}`}
-      class="sticky-cta__tel"
-      aria-label={`전화 ${phone}`}
-    >
-      전화
-    </a>
+    {
+      /* 번호가 없으면 전화 버튼을 빼고 문의 버튼만 남깁니다 */
+      phone && (
+        <a
+          href={`tel:${phone.replace(/-/g, '')}`}
+          class="sticky-cta__tel"
+          aria-label={`전화 ${phone}`}
+        >
+          전화
+        </a>
+      )
+    }
     <a
       href={`/contact/?product=${encodeURIComponent(productTitle)}`}
       class="sticky-cta__main"

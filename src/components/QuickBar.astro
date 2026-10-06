@@ -11,7 +11,16 @@ import siteConfig from '../../site.config';
  *  - 좁은 화면에서는 본문을 가리므로 하단 가로 막대로 바뀝니다.
  *  - 인쇄 시에는 나오지 않습니다.
  */
-const links = siteConfig.quickLinks ?? [];
+/*
+ * 전화번호를 쓰지 않기로 한 사이트에서는 전화 링크를 뺍니다.
+ *
+ * 이 목록의 주소는 손으로 적습니다. 그래서 contact.phone 을 비워도
+ * 여기 적어둔 tel: 링크는 그대로 남습니다. 푸터에서는 전화가 사라졌는데
+ * 퀵 메뉴에서만 가짜 번호로 전화가 걸리는 상태가 됩니다.
+ */
+const links = (siteConfig.quickLinks ?? []).filter(
+  (item) => !(item.href.startsWith('tel:') && !siteConfig.contact.phone)
+);
 ---
 
 {
